@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro</title>
+    <style>
+    body {
+        background-color: #21222c;
+        color: beige;
+      }
+    </style>
+
+</head>
+<body>
+    <div class="container"></div>
+        <div class = "row" id="autor"><div class="col-2"></div><div class="col-4">Francisco González</div></div>
+        <div class = "row" id="core"></div>
+        <div class = "row"><br></div>
+        <div class = "row" ><h1 id="Message">Control de operaciones</h1></div>
+        <div class = "row"><h1 id="hora"></h1></div>
+        <div class = "row"><h1 id="Leyenda"></h1></div>
+        <div class = "row"><h1 id="Tabla"></h1></div>
+    
+    
+    <script>
+        let proceso = -2
+        let data = []
+        const incializar = ()=>{
+            let salida = ''
+            let leyenda = ''
+            if(proceso==1){leyenda="Reg Entradas"}else if(proceso==2){leyenda="Reg Salidas"}else{leyenda =''}
+            if(proceso==-2){salida = `<div class="d-grid gap-2">
+                            <button class="btn btn-primary" type="button" onclick="tipo(1)">Entrada</button>
+                            <button class="btn btn-primary" type="button" onclick="tipo(2)">Salida</button></div>` 
+            }else{ salida = `<div class = "col-sm-3 col-md-2 col-0"><h1>${leyenda}</h1></div>
+                             <div class = "col-sm-3 col-sm-4 col-6"><input type="text" id ="entrada" onkeypress="leer(event);" autofocus></div>
+                             <div class = "col-sm-3 col-sm-4 col-6" ><button class="btn btn-secondary" type="button" onclick="tipo(-2)">Cambiar tipo de operación</button></div>
+                             <div class = "col-sm-3 col-sm-2 col-0"></div>`
+
+            }
+            //salida = `<div id="core">${salida}</div>`
+            //console.log(salida)
+            document.getElementById("core").innerHTML = salida;
+            document.getElementById("Tabla").innerHTML = tabla(data)
+        }
+        const tipo = (p)=>{
+                proceso = p
+                incializar()
+        }
+        const calcTime =(offset,tipo)=>{
+            let d = new Date();
+            let utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+            let nd = new Date(utc + (3600000*offset));
+            // console.log(nd.toLocaleString())
+            // console.log(nd.toLocaleString().substring(11,19))
+            let inicia = 0;if(tipo==2){inicia = 11}
+            return nd.toLocaleString().substring(inicia,19)
+        }
+        const leer =(a,proc)=>{
+            if (a.keyCode === 13 && !a.shiftKey) {
+                let texto = document.getElementById("entrada").value
+                document.getElementById("Message").innerText =texto
+                document.getElementById("hora").innerText ='hora pistoleo: '+calcTime(-4,2)
+                //enviada a API
+                console.log('axios :',proceso,texto,calcTime(-4,1))
+                data.unshift({pr:proceso,cod:texto,fecha:calcTime(-4,1),res:'esperando...'})
+                document.getElementById('entrada').value = '';
+                document.getElementById("Tabla").innerHTML = tabla(data);
+                a.preventDefault();
+            }
+
+        }
+        const tabla = (array)=>{
+            if(array.length==0){
+                return ''
+            }else{
+                let salida = ''
+                let encabezados = Object.keys(array[0]).map((item)=>{return `<th scope="col">${item}</th>`})
+                //console.log(encabezados)
+                encabezados = encabezados.join('')
+                //console.log(encabezados)
+                let filas = array.map((item)=>{
+                    let object = Object.keys(item).map((it)=>{
+                        let cuerpo = item[it]
+                        if(it=='pr'){
+                            if(item[it]==1){cuerpo="Entrada"}
+                            else if(item[it]==2){cuerpo="Salida"}
+                        }
+                        return `<td scope="col">${cuerpo}</td>`})
+                    object = object.join('')
+                    object = `<tr>${object}</tr>`
+                    return object
+                })
+                filas = filas.join('')
+                //console.log(encabezados,filas)
+                salida = `<table class="table table-dark table-striped"><thead><tr>${encabezados}</tr><tbody>${filas}</tbody></table>`
+                return salida
+            }
+            
+        }
+        incializar()
+    </script>
+</body>
+</html>
